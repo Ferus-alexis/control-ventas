@@ -4,9 +4,9 @@
   "display": "standalone",
   "name": "Control de Ventas",
   "orientation": "portrait",
-  "scope": "/",
+  "scope": ".",
   "short_name": "Ventas",
-  "start_url": "/index.html",
+  "start_url": "index.html",
   "theme_color": "#ffffff",
   "id": "com.control.ventas",
   "description": "App para llevar un control del total de ventas y pagos.",
@@ -15,12 +15,12 @@
   ],
   "icons": [
     {
-      "src": "./icon-192.png",
+      "src": "icon-192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "./icon-512.png",
+      "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
     }
