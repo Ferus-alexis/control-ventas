@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" id="themeMeta" content="#764ba2">
+    <title>Control de Ventas Pro</title>
+    <style>
+        :root {
+            --primary: #764ba2;
+            --secondary: #667eea;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg: #f3f4f6;
+            --text-main: #1f2937;
+            --app-scale: 1;
+        }
+
+        html {
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+            font-size: calc(16px * var(--app-scale));
+        }
+
+        /* --- BLOQUEO DE SELECCIÓN (No copiar) --- */
+        * { 
+            -webkit-user-select: none; 
+            -moz-user-select: none; 
+            -ms-user-select: none; 
+            user-select: none; 
+            -webkit-touch-callout: none; /* Bloquea el menú contextual en iOS */
+        }
+
+        /* Permitir selección solo en inputs para poder escribir números */
+        input { 
+            -webkit-user-select: text; 
+            user-select: text; 
+        }
+
+        /* --- ANIMACIONES --- */
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideOut { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(30px); } }
+        @keyframes pulseTotal { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        @keyframes expandDetails { from { opacity: 0; max-height: 0; transform: scaleY(0.95); } to { opacity: 1; max-height: 1000px; transform: scaleY(1); } }
+        @keyframes fadeOutReset { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.9); } }
+
+        .animate-sale { animation: slideIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+        .exit-anim { animation: slideOut 0.5s ease-in forwards; }
+        .pulse-effect { animation: pulseTotal 0.4s ease-in-out; }
+        .reset-animation { animation: fadeOutReset 0.6s ease-in forwards; }
+
+        /* --- ESTILOS GENERALES --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        body { background: var(--bg); color: var(--text-main); min-height: 100vh; }
+
+        .app-header {
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+            padding: 20px 20px 45px; color: white; text-align: center;
+            border-radius: 0 0 30px 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); position: relative;
+        }
+
+        .app-header h2 { 
+            font-size: min(1.15rem, calc(1.15rem / var(--app-scale))); 
+            font-weight: 600; 
+            text-transform: capitalize; 
+        }
+
+        .invisible-space { margin-top: 5px; font-size: 0.9rem; font-weight: 500; }
+
+        .container { max-width: 500px; margin: -35px auto 0; padding: 0 15px; position: relative; z-index: 10; }
+        .card { background: white; border-radius: 20px; padding: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 15px; }
+
+        .total-amount { font-size: 2.2rem; font-weight: 800; color: #000000; margin: 5px 0; text-align: center; display: block; }
+        
+        .input-group input { 
+            width: 100%; 
+            padding: 18px; 
+            border: 2px solid #e5e7eb; 
+            border-radius: 15px; 
+            font-size: 1.5rem; 
+            text-align: center; 
+            outline: none; 
+            margin-bottom: 12px;
+            min-height: 65px; 
+        }
+        .input-group input[type="text"] { font-size: 1.2rem; }
+
+        .btn {
+            border: none; border-radius: 15px; padding: 14px; font-weight: bold;
+            width: 100%; cursor: pointer; font-size: 0.95rem; text-transform: uppercase;
+            user-select: none; transition: background 0.2s, transform 0.1s;
+        }
+
+        .btn-add { 
+            padding: 28px !important; 
+            font-size: 1.2rem !important;
+            margin-bottom: 10px; 
+            min-height: 85px;
+            background: var(--primary); color: white;
+        }
+        .btn-add:active { opacity: 0.9; transform: scale(0.98); }
+
+        .btn-pay { 
+            padding: 22px !important; 
+            font-size: 1.1rem !important;
+            margin-bottom: 10px; 
+            min-height: 65px;
+            background: var(--primary); color: white;
+        }
+        .btn-pay:active { opacity: 0.9; transform: scale(0.98); }
+
+        /* --- CONFIGURACIÓN --- */
+        .config-label { display: block; margin: 15px 0 10px; font-weight: bold; color: #6b7280; text-align: center; font-size: 0.9rem; }
+        .slider-container { padding: 20px 10px; text-align: center; }
+        .slider { width: 100%; height: 8px; border-radius: 5px; background: #d1d5db; outline: none; appearance: none; -webkit-appearance: none; margin: 15px 0; }
+        .slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 24px; height: 24px; border-radius: 50%; background: var(--primary); cursor: pointer; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+
+        .btn-group { display: flex; gap: 10px; margin-bottom: 10px; }
+        .btn-opt { flex: 1; padding: 12px; border-radius: 12px; border: 2px solid #d1d5db; background: white; font-weight: bold; cursor: pointer; font-size: 0.85rem; }
+        .btn-opt.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        /* --- LISTAS --- */
+        .sale-item { background: white; padding: 12px 18px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #eee; }
+        .btn-delete { background: white; color: var(--primary); border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 1rem; }
+        .btn-delete:active { opacity: 0.7; }
+
+        .history-item { background: white; border-radius: 15px; margin-bottom: 12px; overflow: hidden; border: 1px solid #e5e7eb; }
+        .history-header { padding: 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .history-details { display: none; padding: 10px 15px; background: #f9fafb; border-top: 1px dashed #e5e7eb; overflow: hidden; transform-origin: top; }
+        .history-details.show { display: block; animation: expandDetails 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+        .detail-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 0.85rem; border-bottom: 1px solid #f1f1f1; }
+
+        /* --- MODAL --- */
+        #customModal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center; }
+        .modal-card { background: white; padding: 25px; border-radius: 20px; width: 85%; max-width: 380px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); animation: modalAppear 0.3s ease; }
+        .modal-title { font-weight: 800; font-size: 1.2rem; color: var(--primary); margin-bottom: 10px; }
+        .modal-text { font-size: 1rem; color: var(--text-main); margin-bottom: 20px; line-height: 1.4; }
+        .modal-btns { display: flex; gap: 12px; justify-content: center; align-items: center; width: 100%; }
+        .btn-m { flex: 1; padding: 12px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.9rem; transition: transform 0.1s; }
+        .btn-m:active { transform: scale(0.95); }
+        .btn-m-ok { background: var(--primary); color: white; }
+        .btn-m-cancel { background: #e5e7eb; color: #6b7280; }
+
+        /* MENÚ LATERAL */
+        #sideMenu { position: fixed; left: -280px; top: 0; width: 280px; height: 100%; background: white; z-index: 2000; transition: 0.3s ease; box-shadow: 5px 0 15px rgba(0,0,0,0.2); padding: 30px 20px; }
+        #sideMenu.open { left: 0; }
+        .menu-overlay { position: fixed; display: none; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1500; }
+        .menu-item-side { padding: 15px; margin-bottom: 10px; border-radius: 12px; font-weight: bold; color: var(--text-main); cursor: pointer; display: block; user-select: none; -webkit-user-select: none; transition: background 0.2s, transform 0.1s; }
+        .menu-item-side.active { background: #f0ebf8; color: var(--primary); }
+        
+        /* Feedback visual para REINICIAR DÍA al presionar */
+        .btn-reset-feedback:active { 
+            background: #fee2e2 !important; 
+            transform: scale(0.95); 
+        }
+
+        .menu-btn-open { position: absolute; left: 15px; top: 15px; background: none; border: none; color: white; font-size: 1.8rem; cursor: pointer; z-index: 1001; }
+
+        .view { display: none; }
+        .view.active { display: block; }
+
+        .hist-switch { display: flex; background: #e5e7eb; border-radius: 10px; padding: 4px; margin-bottom: 10px; }
+        .hist-switch button { flex: 1; border: none; padding: 6px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer; background: transparent; color: #6b7280; }
+        .hist-switch button.active { background: white; color: var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body id="appBody">
+
+    <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+    <div id="sideMenu">
+        <h2 style="color: var(--primary); margin-bottom: 25px; font-size: 1.4rem;">Opciones</h2>
+        <div class="menu-item-side active" id="side-today" onclick="changeView('today')">Hoy</div>
+        <div class="menu-item-side" id="side-payments" onclick="changeView('payments')">Pagos</div>
+        <div class="menu-item-side" id="side-history" onclick="changeView('history')">Historial</div>
+        <div class="menu-item-side" id="side-config" onclick="changeView('config')">Configuración</div>
+        <hr style="margin: 15px 0; border: 0; border-top: 1px solid #eee;">
+        <div class="menu-item-side btn-reset-feedback" style="color: var(--danger);" onmousedown="startPress()" onmouseup="endPress()" ontouchstart="startPress()" ontouchend="endPress()">REINICIAR DÍA</div>
+    </div>
+
+    <div id="customModal">
+        <div class="modal-card">
+            <div class="modal-title">Atención</div>
+            <div class="modal-text" id="modalMsg"></div>
+            <div class="modal-btns">
+                <button class="btn-m btn-m-cancel" id="modalCancelBtn" onclick="modalResponse(false)">CANCELAR</button>
+                <button class="btn-m btn-m-ok" onclick="modalResponse(true)">ACEPTAR</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-header">
+        <button class="menu-btn-open" onclick="toggleMenu()">☰</button>
+        <h2 id="currentDateDisplay">---</h2>
+        <div class="invisible-space" id="liveClockDisplay">00:00</div>
+    </div>
+
+    <div class="container">
+        <div id="view-today" class="view active">
+            <div class="card" style="padding: 10px 15px;"> 
+                <div style="text-align: center; color: #6b7280; font-size: 0.75rem; font-weight: 600;">TOTAL ACUMULADO</div>
+                <div class="total-amount" id="displayTotal">$0.00</div>
+            </div>
+            <div class="card">
+                <div class="input-group">
+                    <input type="number" id="amountInput" inputmode="decimal" placeholder="0.00" step="0.01" 
+                        onkeydown="if(this.value.includes('.') && this.value.split('.')[1].length >= 2 && event.key >= '0' && event.key <= '9') event.preventDefault();">
+                </div>
+                <button class="btn btn-add" onclick="registrarVenta()">AGREGAR VENTA</button>
+            </div>
+            <div id="todayList"></div>
+        </div>
+
+        <div id="view-payments" class="view">
+            <div class="card" style="padding: 10px 15px;"> 
+                <div style="text-align: center; color: #6b7280; font-size: 0.75rem; font-weight: 600;">TOTAL PAGOS HOY</div>
+                <div class="total-amount" id="displayTotalPay">$0.00</div>
+            </div>
+            <div class="card">
+                <div class="input-group">
+                    <input type="text" id="payConcept" placeholder="Ej: Proveedor" style="margin-bottom: 8px;">
+                    <input type="number" id="payInput" inputmode="decimal" placeholder="0.00" step="0.01" 
+                        onkeydown="if(this.value.includes('.') && this.value.split('.')[1].length >= 2 && event.key >= '0' && event.key <= '9') event.preventDefault();">
+                </div>
+                <button class="btn btn-pay" onclick="registrarPago()">AGREGAR PAGO</button>
+            </div>
+            <div id="payList"></div>
+        </div>
+
+        <div id="view-history" class="view">
+            <div id="historyContainer"></div>
+        </div>
+
+        <div id="view-config" class="view">
+            <div class="card">
+                <span class="config-label">COLOR DEL BANNER</span>
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; border: 2px solid #e5e7eb; border-radius: 12px; margin-bottom: 10px;">
+                    <span style="font-size: 0.9rem; font-weight: bold; color: #6b7280;">Color principal</span>
+                    <input type="color" id="bannerColorPicker" value="#764ba2" onchange="cambiarColorBanner(this.value)" style="border:none; width:40px; height:35px; background:none; cursor:pointer;">
+                </div>
+
+                <span class="config-label">TAMAÑO DE LA APLICACIÓN</span>
+                <div class="slider-container">
+                    <input type="range" min="0.6" max="1.5" step="0.05" value="1" class="slider" id="sizeSlider" oninput="updateSize(this.value)">
+                    <div id="sizeValue" style="font-weight: bold; color: var(--primary);">100%</div>
+                </div>
+                
+                <span class="config-label">FORMATO DE HORA</span>
+                <div class="btn-group">
+                    <button id="opt-h-24" class="btn-opt" onclick="setFormato(24)">24 HORAS</button>
+                    <button id="opt-h-12" class="btn-opt" onclick="setFormato(12)">AM / PM</button>
+                </div>
+
+                <span class="config-label">MOSTRAR SEGUNDOS</span>
+                <div class="btn-group">
+                    <button id="opt-s-off" class="btn-opt" onclick="setSegundos(false)">NO</button>
+                    <button id="opt-s-on" class="btn-opt" onclick="setSegundos(true)">SÍ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let settings = JSON.parse(localStorage.getItem('vSettings')) || { formato: '24', escala: 1, colorBanner: '#764ba2', segundos: false };
+        if(!settings.colorBanner) settings.colorBanner = '#764ba2';
+        if(settings.segundos === undefined) settings.segundos = false;
+
+        let db = JSON.parse(localStorage.getItem('ventasDB')) || { 
+            hoy: { ventas: [], total: 0, fechaActiva: null }, 
+            pagosHoy: { lista: [], total: 0 },
+            historial: [] 
+        };
+        
+        if(!db.pagosHoy) db.pagosHoy = { lista: [], total: 0 };
+
+        let pressTimer, modalCallback = null;
+
+        function toggleMenu() {
+            const menu = document.getElementById('sideMenu');
+            const overlay = document.getElementById('menuOverlay');
+            const isOpen = menu.classList.toggle('open');
+            overlay.style.display = isOpen ? 'block' : 'none';
+            if (isOpen) history.pushState({action: 'menu'}, "");
+        }
+
+        function changeView(v, fromPopState = false) {
+            document.querySelectorAll('.view').forEach(x => x.classList.remove('active'));
+            document.querySelectorAll('.menu-item-side').forEach(x => x.classList.remove('active'));
+            document.getElementById('view-' + v).classList.add('active');
+            document.getElementById('side-' + v).classList.add('active');
+            
+            // Colapsar y restablecer todos los historiales abiertos al cambiar de vista
+            document.querySelectorAll('.history-details.show').forEach(detEl => {
+                detEl.classList.remove('show');
+                const id = detEl.id.replace('det-', '');
+                const btnV = document.getElementById(`sw-v-${id}`);
+                const btnP = document.getElementById(`sw-p-${id}`);
+                const mainTotal = document.getElementById(`main-total-${id}`);
+                const listV = document.getElementById(`list-v-${id}`);
+                const listP = document.getElementById(`list-p-${id}`);
+                
+                if (btnV && btnP && mainTotal && listV && listP) {
+                    btnV.classList.add('active');
+                    btnP.classList.remove('active');
+                    btnV.style.color = 'var(--primary)';
+                    btnP.style.color = '#6b7280';
+                    listV.style.display = 'block';
+                    listP.style.display = 'none';
+                    
+                    const subtitle = document.getElementById(`subtitle-${id}`).innerText;
+                    const ventasMatch = subtitle.match(/Ventas: \$([\d\.]+)/);
+                    if (ventasMatch) {
+                        mainTotal.innerText = `$${parseFloat(ventasMatch[1]).toFixed(2)}`;
+                    }
+                    mainTotal.style.color = "#000000";
+                }
+            });
+            
+            if (!fromPopState && v !== 'today') history.pushState({view: v}, "");
+            
+            const menu = document.getElementById('sideMenu');
+            if (menu.classList.contains('open')) {
+                menu.classList.remove('open');
+                document.getElementById('menuOverlay').style.display = 'none';
+            }
+        }
+
+        window.onpopstate = function(event) {
+            const menu = document.getElementById('sideMenu');
+            if (menu.classList.contains('open')) {
+                menu.classList.remove('open');
+                document.getElementById('menuOverlay').style.display = 'none';
+                return;
+            }
+            const currentView = document.querySelector('.view.active').id;
+            if (currentView !== 'view-today') {
+                changeView('today', true);
+            } else {
+                history.pushState(null, "");
+            }
+        };
+        history.pushState(null, "");
+
+        function updateSize(val) {
+            settings.escala = parseFloat(val);
+            document.documentElement.style.setProperty('--app-scale', val);
+            document.getElementById('sizeValue').innerText = Math.round(val * 100) + "%";
+            saveSettings();
+        }
+
+        function cambiarColorBanner(color) {
+            settings.colorBanner = color;
+            saveSettings();
+            aplicarColorBanner();
+            render();
+        }
+
+        function aplicarColorBanner() {
+            document.documentElement.style.setProperty('--primary', settings.colorBanner);
+            document.documentElement.style.setProperty('--secondary', settings.colorBanner);
+            document.getElementById('themeMeta').setAttribute('content', settings.colorBanner);
+            document.getElementById('bannerColorPicker').value = settings.colorBanner;
+        }
+
+        function setSegundos(val) {
+            settings.segundos = val;
+            saveSettings();
+            aplicarAjustes();
+            render();
+        }
+
+        function customNotify(msg, isConfirm = true) {
+            document.getElementById('modalMsg').innerText = msg;
+            document.getElementById('modalCancelBtn').style.display = isConfirm ? 'flex' : 'none';
+            document.getElementById('customModal').style.display = 'flex';
+            return new Promise(resolve => { modalCallback = resolve; });
+        }
+
+        function modalResponse(val) {
+            document.getElementById('customModal').style.display = 'none';
+            if (modalCallback) modalCallback(val);
+        }
+
+        function inicializar() {
+            actualizarFechaCabecera();
+            document.documentElement.style.setProperty('--app-scale', settings.escala);
+            document.getElementById('sizeSlider').value = settings.escala;
+            document.getElementById('sizeValue').innerText = Math.round(settings.escala * 100) + "%";
+            aplicarColorBanner();
+            aplicarAjustes(); 
+            render();
+            setInterval(actualizarRelojEnVivo, 1000);
+        }
+
+        function actualizarRelojEnVivo() {
+            document.getElementById('liveClockDisplay').innerText = getHora(Date.now());
+        }
+
+        function actualizarFechaCabecera() {
+            const opciones = { weekday: 'long', day: 'numeric', month: 'long' };
+            const fechaActual = new Date().toLocaleDateString('es-ES', opciones);
+            
+            if (db.hoy.ventas.length === 0 && db.pagosHoy.lista.length === 0) {
+                db.hoy.fechaActiva = fechaActual;
+                saveDB();
+            }
+            document.getElementById('currentDateDisplay').innerText = db.hoy.fechaActiva || fechaActual;
+        }
+
+        function startPress() { pressTimer = window.setTimeout(confirmarReinicio, 750); }
+        function endPress() { clearTimeout(pressTimer); }
+        function setFormato(f) { settings.formato = f.toString(); saveSettings(); }
+        function saveSettings() { localStorage.setItem('vSettings', JSON.stringify(settings)); aplicarAjustes(); render(); }
+        function saveDB() { localStorage.setItem('ventasDB', JSON.stringify(db)); }
+
+        function aplicarAjustes() {
+            document.getElementById('opt-h-24').classList.toggle('active', settings.formato === '24');
+            document.getElementById('opt-h-12').classList.toggle('active', settings.formato === '12');
+            document.getElementById('opt-s-off').classList.toggle('active', !settings.segundos);
+            document.getElementById('opt-s-on').classList.toggle('active', settings.segundos);
+            actualizarRelojEnVivo();
+        }
+
+        function getHora(ts) {
+            const d = new Date(ts);
+            let hours = d.getHours();
+            const minutes = String(d.getMinutes()).padStart(2, '0');
+            const seconds = String(d.getSeconds()).padStart(2, '0');
+            let ampm = '';
+
+            if (settings.formato === '12') {
+                ampm = hours >= 12 ? ' PM' : ' AM';
+                hours = hours % 12;
+                if (hours === 0) hours = 12;
+            }
+            const formattedHours = String(hours).padStart(2, '0');
+
+            if (settings.segundos) {
+                return `${formattedHours}:${minutes}:${seconds}${ampm}`;
+            } else {
+                return `${formattedHours}:${minutes}${ampm}`;
+            }
+        }
+
+        async function registrarVenta() {
+            const input = document.getElementById('amountInput');
+            const valor = parseFloat(input.value);
+            if (isNaN(valor) || valor < 0.01) { await customNotify("Monto no válido", false); return; }
+            
+            if (db.hoy.ventas.length === 0 && db.pagosHoy.lista.length === 0) {
+                actualizarFechaCabecera();
+            }
+
+            db.hoy.ventas.unshift({ id: Date.now(), monto: valor, timestamp: Date.now() });
+            db.hoy.total += valor; input.value = ''; 
+            const display = document.getElementById('displayTotal');
+            display.classList.remove('pulse-effect'); void display.offsetWidth; display.classList.add('pulse-effect');
+            saveDB(); render(true); 
+        }
+
+        async function registrarPago() {
+            const inputVal = document.getElementById('payInput');
+            const inputConcept = document.getElementById('payConcept');
+            const valor = parseFloat(inputVal.value);
+            const concepto = inputConcept.value.trim() || "Pago General";
+            if (isNaN(valor) || valor < 0.01) { await customNotify("Monto no válido", false); return; }
+            
+            if (db.hoy.ventas.length === 0 && db.pagosHoy.lista.length === 0) {
+                actualizarFechaCabecera();
+            }
+
+            db.pagosHoy.lista.unshift({ id: Date.now(), concepto: concepto, monto: valor, timestamp: Date.now() });
+            db.pagosHoy.total += valor;
+            inputVal.value = ''; inputConcept.value = '';
+            const display = document.getElementById('displayTotalPay');
+            display.classList.remove('pulse-effect'); void display.offsetWidth; display.classList.add('pulse-effect');
+            saveDB(); render(true);
+        }
+
+        async function borrarVenta(id) {
+            const v = db.hoy.ventas.find(x => x.id === id);
+            if (await customNotify(`¿Eliminar $${v.monto.toFixed(2)}?`)) {
+                db.hoy.total -= v.monto; 
+                db.hoy.ventas = db.hoy.ventas.filter(x => x.id !== id); 
+                saveDB(); render();
+            }
+        }
+
+        async function borrarPago(id) {
+            const p = db.pagosHoy.lista.find(x => x.id === id);
+            if (await customNotify(`¿Eliminar pago: ${p.concepto}?`)) {
+                db.pagosHoy.total -= p.monto;
+                db.pagosHoy.lista = db.pagosHoy.lista.filter(x => x.id !== id);
+                saveDB(); render();
+            }
+        }
+
+        async function confirmarReinicio() {
+            if (db.hoy.ventas.length === 0 && db.pagosHoy.lista.length === 0) return;
+            if (await customNotify("¿Finalizar el día y guardar historial?")) {
+                const menu = document.getElementById('sideMenu');
+                if (menu.classList.contains('open')) {
+                    menu.classList.remove('open');
+                    document.getElementById('menuOverlay').style.display = 'none';
+                }
+                document.getElementById('view-today').classList.add('reset-animation');
+                setTimeout(() => {
+                    db.historial.unshift({ 
+                        id: Date.now(), 
+                        fechaLabel: db.hoy.fechaActiva, 
+                        totalVentas: db.hoy.total, 
+                        totalPagos: db.pagosHoy.total,
+                        ventas: [...db.hoy.ventas],
+                        pagos: [...db.pagosHoy.lista]
+                    });
+                    db.hoy = { ventas: [], total: 0, fechaActiva: null }; 
+                    db.pagosHoy = { lista: [], total: 0 };
+                    saveDB();
+                    actualizarFechaCabecera();
+                    render();
+                    document.getElementById('view-today').classList.remove('reset-animation');
+                    changeView('today', true);
+                }, 600);
+            }
+        }
+
+        function render(isNew = false) {
+            document.getElementById('displayTotal').innerText = `$${db.hoy.total.toFixed(2)}`;
+            document.getElementById('todayList').innerHTML = db.hoy.ventas.map((v, index) => `
+                <div id="sale-${v.id}" class="sale-item ${isNew && index === 0 ? 'animate-sale' : ''}">
+                    <div><span style="color:#9ca3af; font-size:0.8rem; margin-right:8px;">${getHora(v.timestamp)}</span><span style="font-weight:700;">$${v.monto.toFixed(2)}</span></div>
+                    <button class="btn-delete" style="color: var(--primary);" onclick="borrarVenta(${v.id})">🗑️</button>
+                </div>
+            `).join('');
+
+            document.getElementById('displayTotalPay').innerText = `$${db.pagosHoy.total.toFixed(2)}`;
+            document.getElementById('payList').innerHTML = db.pagosHoy.lista.map((p, index) => `
+                <div id="pay-${p.id}" class="sale-item ${isNew && index === 0 ? 'animate-sale' : ''}">
+                    <div>
+                        <div style="font-size:0.7rem; color:#9ca3af;">${getHora(p.timestamp)}</div>
+                        <div style="font-weight:700;">${p.concepto}</div>
+                        <div style="color:var(--danger); font-weight:bold; font-size:0.9rem;">$${p.monto.toFixed(2)}</div>
+                    </div>
+                    <button class="btn-delete" style="color: var(--primary);" onclick="borrarPago(${p.id})">🗑️</button>
+                </div>
+            `).join('');
+
+            const hCont = document.getElementById('historyContainer');
+            if (db.historial.length === 0) {
+                hCont.innerHTML = '<p style="text-align:center; color:#9ca3af; margin-top:40px;">Historial vacío.</p>';
+            } else {
+                hCont.innerHTML = db.historial.map(reg => {
+                    const tVentas = reg.totalVentas || 0;
+                    const tPagos = reg.totalPagos || 0;
+                    return `
+                    <div id="hist-${reg.id}" class="history-item">
+                        <div class="history-header" onclick="toggleDet(${reg.id})">
+                            <div>
+                                <div style="font-weight:bold; font-size:0.95rem;">${reg.fechaLabel}</div>
+                                <div style="font-size:0.7rem; color:#9ca3af;" id="subtitle-${reg.id}">Ventas: $${tVentas.toFixed(2)} | Pagos: $${tPagos.toFixed(2)}</div>
+                            </div>
+                            <div style="font-weight:800; color:#000000; font-size:1.1rem;" id="main-total-${reg.id}">$${tVentas.toFixed(2)}</div>
+                        </div>
+                        <div class="history-details" id="det-${reg.id}">
+                            <div class="hist-switch">
+                                <button id="sw-v-${reg.id}" class="active" style="color: var(--primary);" onclick="switchHistTab(${reg.id}, 'v', ${tVentas}, ${tPagos})">VENTAS</button>
+                                <button id="sw-p-${reg.id}" onclick="switchHistTab(${reg.id}, 'p', ${tVentas}, ${tPagos})">PAGOS</button>
+                            </div>
+                            <div id="list-v-${reg.id}">
+                                ${reg.ventas.map(v => `<div class="detail-row"><span>${getHora(v.timestamp)}</span><strong>$${v.monto.toFixed(2)}</strong></div>`).join('')}
+                            </div>
+                            <div id="list-p-${reg.id}" style="display:none">
+                                ${reg.pagos.map(p => `<div class="detail-row"><span>${getHora(p.timestamp)} - ${p.concepto}</span><strong style="color:var(--danger)">$${p.monto.toFixed(2)}</strong></div>`).join('')}
+                            </div>
+                            <button class="btn" onclick="borrarH(${reg.id})" style="background:#fee2e2; color:var(--danger); margin-top:10px; border-radius:10px; font-weight:bold; text-transform:uppercase;">ELIMINAR REGISTRO</button>
+                        </div>
+                    </div>
+                `}).join('');
+            }
+        }
+
+        function switchHistTab(id, type, tVentas, tPagos) {
+            event.stopPropagation();
+            const mainTotal = document.getElementById(`main-total-${id}`);
+            const btnV = document.getElementById(`sw-v-${id}`);
+            const btnP = document.getElementById(`sw-p-${id}`);
+            
+            btnV.classList.toggle('active', type === 'v');
+            btnP.classList.toggle('active', type === 'p');
+            
+            btnV.style.color = (type === 'v') ? 'var(--primary)' : '#6b7280';
+            btnP.style.color = (type === 'p') ? 'var(--primary)' : '#6b7280';
+
+            document.getElementById(`list-v-${id}`).style.display = type === 'v' ? 'block' : 'none';
+            document.getElementById(`list-p-${id}`).style.display = type === 'p' ? 'block' : 'none';
+            if(type === 'v') { mainTotal.innerText = `$${tVentas.toFixed(2)}`; mainTotal.style.color = "#000000"; }
+            else { mainTotal.innerText = `$${tPagos.toFixed(2)}`; mainTotal.style.color = "var(--danger)"; }
+        }
+
+        function toggleDet(id) { 
+            const detEl = document.getElementById(`det-${id}`);
+            const isShowing = detEl.classList.toggle('show');
+            
+            if (!isShowing) {
+                const btnV = document.getElementById(`sw-v-${id}`);
+                const btnP = document.getElementById(`sw-p-${id}`);
+                const mainTotal = document.getElementById(`main-total-${id}`);
+                const listV = document.getElementById(`list-v-${id}`);
+                const listP = document.getElementById(`list-p-${id}`);
+                
+                if (btnV && btnP && mainTotal && listV && listP) {
+                    btnV.classList.add('active');
+                    btnP.classList.remove('active');
+                    btnV.style.color = 'var(--primary)';
+                    btnP.style.color = '#6b7280';
+                    listV.style.display = 'block';
+                    listP.style.display = 'none';
+                    
+                    const subtitle = document.getElementById(`subtitle-${id}`).innerText;
+                    const ventasMatch = subtitle.match(/Ventas: \$([\d\.]+)/);
+                    if (ventasMatch) {
+                        mainTotal.innerText = `$${parseFloat(ventasMatch[1]).toFixed(2)}`;
+                    }
+                    mainTotal.style.color = "#000000";
+                }
+            }
+        }
+
+        async function borrarH(id) {
+            if (await customNotify("¿Borrar historial?")) {
+                db.historial = db.historial.filter(h => h.id !== id); saveDB(); render();
+            }
+        }
+        inicializar();
+    </script>
+</body>
+</html>

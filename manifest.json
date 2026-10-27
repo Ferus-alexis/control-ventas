@@ -1,0 +1,16 @@
+{
+  "background_color": "#ffffff",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "Control de Ventas",
+  "orientation": "portrait",
+  "scope": "/",
+  "short_name": "Ventas",
+  "start_url": "/index.html",
+  "theme_color": "#ffffff",
+  "id": "com.control.ventas",
+  "description": "App para llevar un control del total de ventas y pagos.",
+  "categories": [
+    "utilities"
+  ]
+}
